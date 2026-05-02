@@ -47,7 +47,7 @@ Hooks.once('init', async function () {
         game.keybindings.register(MODULE_ID, "hotkey", {
           name: "Scribble",
           editable: [
-            {key: "KeyQ"},
+            {key: "KeyL"},
           ],
           onDown: (e) => {
             if (game.ScribbleHandler.current) return;

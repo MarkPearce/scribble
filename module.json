@@ -1,7 +1,7 @@
 {
   "id": "scribble",
   "title": "Scribble",
-  "description": "Hold a hotkey (Q by default) to quickly scribble temporary lines on the canvas. Drawings are broadcast in real time to other connected users and fade out automatically.",
+  "description": "Hold a hotkey (L by default) to quickly scribble temporary lines on the canvas. Drawings are broadcast in real time to other connected users and fade out automatically.",
   "version": "1.0.0",
   "compatibility": {
     "minimum": "13",
