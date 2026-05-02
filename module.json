@@ -1,0 +1,33 @@
+{
+  "id": "scribble",
+  "title": "Scribble",
+  "description": "Hold a hotkey (Q by default) to quickly scribble temporary lines on the canvas. Drawings are broadcast in real time to other connected users and fade out automatically.",
+  "version": "1.0.0",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "14",
+    "maximum": "14"
+  },
+  "authors": [
+    {
+      "name": "Mark"
+    }
+  ],
+  "esmodules": [
+    "scripts/main.js"
+  ],
+  "styles": [
+    "styles/module.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "languages/en.json"
+    }
+  ],
+  "socket": true,
+  "url": "https://github.com/MarkPearce/scribble",
+  "manifest": "https://github.com/MarkPearce/scribble/releases/latest/download/module.json",
+  "download": "https://github.com/MarkPearce/scribble/releases/latest/download/module.zip"
+}
