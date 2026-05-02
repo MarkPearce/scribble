@@ -8,20 +8,24 @@ export class Scribble {
         this.debounce = false;
         this.pollRate = game.settings.get(MODULE_ID, "pollrate");
         this.fadeoutTimer = game.settings.get(MODULE_ID, "fadeoutDelay") || data?.fadeOutTimer || 1000;
-        this.color = data?.color || game?.user?.color?.css?.replace("#", "0x") || 0xffffff;
+        this.color = data?.color ?? Number(game?.user?.color ?? 0xffffff);
         this.width = data?.width || game.settings.get(MODULE_ID, "linethicc") || 2;
         this.preview = new PIXI.Graphics();
-        canvas.controls.debug.addChild(this.preview);
+        Scribble._layer().addChild(this.preview);
         this.id = data?.id || foundry.utils.randomID();
     }
 
     start() {
         document.addEventListener("mousemove", this._onMouseMove);
+        const view = canvas.app?.canvas ?? canvas.app?.view;
+        if (view) view.style.pointerEvents = "none";
     }
 
     end() {
         document.removeEventListener("mousemove", this._onMouseMove);
-        canvas.controls.debug.removeChild(this.preview);
+        const view = canvas.app?.canvas ?? canvas.app?.view;
+        if (view) view.style.pointerEvents = "";
+        Scribble._layer().removeChild(this.preview);
         this.preview.destroy();
         game.ScribbleHandler.previews[this.id]?.clear();
         if (this.canceled) return;
@@ -54,7 +58,7 @@ export class Scribble {
             canvas.app.ticker.add(fadeOut);
         }, this.fadeoutTimer);
 
-        canvas.controls.debug.addChild(container);
+        Scribble._layer().addChild(container);
         game.ScribbleHandler.previews[this.id]?.clear();
     }
 
@@ -83,18 +87,27 @@ export class Scribble {
         Scribble._strokePath(this.preview, this.points, this.width, this.color);
     }
 
+    static _layer() {
+        const handler = game.ScribbleHandler;
+        if (handler?.container && !handler.container.destroyed) return handler.container;
+        const parent = canvas.primary ?? canvas.interface ?? canvas.stage;
+        const container = new PIXI.Container();
+        container.name = "ScribbleLayer";
+        container.sortableChildren = true;
+        container.visible = true;
+        container.eventMode = "none";
+        parent.addChild(container);
+        if (handler) handler.container = container;
+        return container;
+    }
+
     static _strokePath(graphics, points, width, color) {
-        if (points.length < 2) return;
-        graphics.moveTo(points[0], points[1]);
+        if (points.length < 4) return;
+        const useV8 = typeof graphics.stroke === "function";
+        if (!useV8) graphics.lineStyle(width, color, 1);
         for (let i = 2; i < points.length; i += 2) {
-            graphics.lineTo(points[i], points[i + 1]);
-        }
-        // PIXI v8 (Foundry V13+) commits the current path with stroke({...}).
-        // Fall back to lineStyle for PIXI v7 environments.
-        if (typeof graphics.stroke === "function") {
-            graphics.stroke({ width, color, alpha: 1 });
-        } else {
-            graphics.lineStyle(width, color, 1);
+            graphics.moveTo(points[i - 2], points[i - 1]).lineTo(points[i], points[i + 1]);
+            if (useV8) graphics.stroke({ width, color, alpha: 1, cap: "round", join: "round" });
         }
     }
 }
@@ -107,6 +120,8 @@ export class ScribbleHandler {
         this.current = null;
         this.hotkey = null;
         this.previews = {};
+        this.container = null;
+        Hooks.on("canvasTearDown", () => { this.container = null; });
     }
 
     static socketScribble(data) {
@@ -118,7 +133,7 @@ export class ScribbleHandler {
         handler.previews[data.id]?.clear();
         if (!handler.previews[data.id]) {
             handler.previews[data.id] = new PIXI.Graphics();
-            canvas.controls.debug.addChild(handler.previews[data.id]);
+            Scribble._layer().addChild(handler.previews[data.id]);
         }
         Scribble._strokePath(handler.previews[data.id], data.points, data.width, data.color);
     }

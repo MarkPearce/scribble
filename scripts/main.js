@@ -50,7 +50,9 @@ Hooks.once('init', async function () {
             {key: "KeyQ"},
           ],
           onDown: (e) => {
-            if(game.ScribbleHandler.current || e.event.target.localName !== "body") return;
+            if (game.ScribbleHandler.current) return;
+            const t = e.event?.target;
+            if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement || t?.isContentEditable) return;
             game.ScribbleHandler.current = new Scribble();
             game.ScribbleHandler.current.start();
           },
